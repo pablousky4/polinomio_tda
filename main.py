@@ -2,6 +2,7 @@
 from ejer1.ejer1 import resolver_puzzle
 from ejer2.ejer2 import ejecutar_determinantes, matriz
 from ejer3.ejer3 import naves
+from ejer4.ejer4 import polinomios
 
 def main():
     while True:
@@ -28,7 +29,8 @@ def main():
             print("Ejecutando ejercicio 3...")
             naves()
         elif opcion == '4':
-            pass
+            print("Ejecutando ejercicio 4...")
+            polinomios()
         else:
             print("ERROR FATAL")
 

@@ -69,3 +69,5 @@ cd polinomio_tda
 ```
 
 Asegúrate de tener Python instalado y ejecuta el archivo principal para comenzar.
+
+![Image](https://github.com/user-attachments/assets/130a179e-3819-4a50-aeb1-952d31a04726)

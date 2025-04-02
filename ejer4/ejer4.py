@@ -8,43 +8,99 @@ def restar_polinomios(polinomio1, polinomio2):
         for i, (coef2, exp2) in enumerate(polinomio2):
             if exp1 == exp2:
                 resultado.append((coef1 - coef2, exp1))
-                polinomio2.pop(i)  # Marcar como procesado
+                polinomio2.pop(i)
                 encontrado = True
                 break
         if not encontrado:
             resultado.append((coef1, exp1))
-
-    polinomio2 = [term for term in polinomio2 if term is not None]
 
     for coef2, exp2 in polinomio2:
         resultado.append((-coef2, exp2))
     
     resultado.sort(key=lambda x: x[1], reverse=True)
     
-    return resultado
+    return formatear_polinomio(resultado)
 
-#dividir
-def dividir_polinomios(polinomio1, polinomio2):
-    cociente = []
-    polinomio1 = sorted(polinomio1, key=lambda x: x[1], reverse=True)
-    divisor = sorted(polinomio2, key=lambda x: x[1], reverse=True)
+def formatear_polinomio(polinomio):
+    if not polinomio:
+        return "0"
     
-    while polinomio1 and polinomio1[0][1] >= polinomio2[0][1]:
-        coef1, exp1 = polinomio1[0]
-        coef2, exp2 = divisor[0]
+    terminos = []
+    for coef, exp in polinomio:
+        if coef == 0:
+            continue
         
-        coef_cociente = coef1 / coef2
-        exp_cociente = exp1 - exp2
+        signo = " + " if coef > 0 else " - "
+        coef_abs = abs(coef)
         
-        cociente.append((coef_cociente, exp_cociente))
-        
-        subtraccion = [(coef_cociente * coef, exp_cociente + exp) for coef, exp in divisor]
-        polinomio1 = restar_polinomios(polinomio1, subtraccion)
+        if exp == 0:
+            terminos.append(f"{signo}{coef_abs}")
+        elif exp == 1:
+            terminos.append(f"{signo}{coef_abs}x")
+        else:
+            terminos.append(f"{signo}{coef_abs}x^{exp}")
+    
+    polinomio_str = "".join(terminos)
+    
+    if polinomio_str.startswith(" + "):
+        polinomio_str = polinomio_str[3:]
+    elif polinomio_str.startswith(" - "):
+        polinomio_str = "-" + polinomio_str[3:]
+    
+    return polinomio_str
 
-        if not polinomio1 or polinomio1[0][1] < polinomio2[0][1]:
-            pass
+#dividir  //////// a la hora de dividir únicamente es posible sacar el cociente 
+def dividir_polinomios(p1, p2):  
+    pol1 = {exp: coef for coef, exp in p1}
+    pol2 = {exp: coef for coef, exp in p2}
     
-    return cociente
+    grado1 = max(pol1)
+    grado2 = max(pol2)
+    
+    if grado1 < grado2:
+        return "0"
+    
+    cociente = {}
+    residuo = pol1.copy()
+    
+    while residuo and max(residuo) >= grado2:
+        exp_residuo = max(residuo)
+        coef_residuo = residuo[exp_residuo]
+        
+        exp_cociente = exp_residuo - grado2
+        coef_cociente = coef_residuo / pol2[grado2]
+        
+        cociente[exp_cociente] = coef_cociente
+        
+        for exp, coef in pol2.items():
+            exp_nuevo = exp_cociente + exp
+            coef_nuevo = coef_cociente * coef
+            if exp_nuevo in residuo:
+                residuo[exp_nuevo] -= coef_nuevo
+                if abs(residuo[exp_nuevo]) < 1e-10:  #
+                    del residuo[exp_nuevo]
+            else:
+                residuo[exp_nuevo] = -coef_nuevo
+    
+    resultado = sorted(cociente.items(), key=lambda x: -x[0])
+    
+    def formatear_polinomio(polinomio):
+        if not polinomio:
+            return "0"
+        partes = []
+        for exp, coef in polinomio:
+            if coef == 0:
+                continue
+            coef_str = f"{coef:.2f}" if coef % 1 != 0 else str(int(coef))
+            if exp == 0:
+                partes.append(f"{coef_str}")
+            elif exp == 1:
+                partes.append(f"{coef_str}x")
+            else:
+                partes.append(f"{coef_str}x^{exp}")
+        return " + ".join(partes).replace("+ -", "- ")
+    
+    return formatear_polinomio(resultado)
 
 #eliminar
 def eliminar_termino(polinomio, coeficiente, exponente):
@@ -56,34 +112,55 @@ def existe_termino(polinomio, coeficiente, exponente):
 
 #hago esto para ejecutar todo desde el main
 def polinomios():
-    polinomio1 = [(3, 2), (2, 1), (1, 0)]  # 3x^2 + 2x + 1
-    polinomio2 = [(1, 2), (-4, 1), (4, 0)]  # x^2 - 4x + 4
+    polinomio1 = [(5, 2), (2, 1), (1, 0)]  # 5x^2 + 2x + 1
+    polinomio2 = [(1, 2), (4, 1), (4, 0)]  # x^2 + 4x + 4
 
     # Resta
     resultado_resta = restar_polinomios(polinomio1, polinomio2)
-    print("p1:", polinomio1, "-p2:", polinomio2)
     print("Resultado de la resta:", resultado_resta)
 
     # División
-    #resultado_division = dividir_polinomios(polinomio1, polinomio2)
-    #print("Resultado de la división:", resultado_division)
+    resultado_division = dividir_polinomios(polinomio1, polinomio2)
+    print("Resultado de la división:", resultado_division)
 
-    # Eliminar término
+    # Eliminar término (busca en ambos polinomios)
     try:
         coef_eliminar = float(input("Introduce el coeficiente del término a eliminar: "))
         exp_eliminar = int(input("Introduce el exponente del término a eliminar: "))
-        polinomio_sin_termo = eliminar_termino(polinomio1, coef_eliminar, exp_eliminar)
-        print(f"Polinomio sin el término {coef_eliminar}x^{exp_eliminar}:", polinomio_sin_termo)
+        
+        en_polinomio1 = (coef_eliminar, exp_eliminar) in polinomio1
+        en_polinomio2 = (coef_eliminar, exp_eliminar) in polinomio2
+        
+        if en_polinomio1 and en_polinomio2:
+            opcion = input("El término está en ambos polinomios. ¿De cuál deseas eliminarlo? (1/2): ")
+            if opcion == "1":
+                polinomio1 = eliminar_termino(polinomio1, coef_eliminar, exp_eliminar)
+            elif opcion == "2":
+                polinomio2 = eliminar_termino(polinomio2, coef_eliminar, exp_eliminar)
+            else:
+                print("Opción no válida. No se ha eliminado ningún término.")
+        elif en_polinomio1:
+            polinomio1 = eliminar_termino(polinomio1, coef_eliminar, exp_eliminar)
+        elif en_polinomio2:
+            polinomio2 = eliminar_termino(polinomio2, coef_eliminar, exp_eliminar)
+        else:
+            print("El término no se encuentra en ninguno de los polinomios.")
+        
+        print("Polinomio 1 actualizado:", polinomio1)
+        print("Polinomio 2 actualizado:", polinomio2)
     except ValueError:
         print("Error: Entrada inválida. Asegúrate de ingresar un número válido.")
 
-    # Verificar término
+    # Verificar término (busca en ambos polinomios)
     try:
         coef_verificar = float(input("Introduce el coeficiente del término a verificar: "))
         exp_verificar = int(input("Introduce el exponente del término a verificar: "))
-        existe = existe_termino(polinomio1, coef_verificar, exp_verificar)
-        print(f"¿Existe el término {coef_verificar}x^{exp_verificar} en el polinomio 1?", existe)
+        
         existe1 = existe_termino(polinomio1, coef_verificar, exp_verificar)
-        print(f"¿Existe el término {coef_verificar}x^{exp_verificar} en el polinomio 2?", existe1)
+        print(f"¿Existe el término {coef_verificar}x^{exp_verificar} en el polinomio 1?", existe1)
+        
+        existe2 = existe_termino(polinomio2, coef_verificar, exp_verificar)
+        print(f"¿Existe el término {coef_verificar}x^{exp_verificar} en el polinomio 2?", existe2)
+        
     except ValueError:
         print("Error: Entrada inválida. Asegúrate de ingresar un número válido.")

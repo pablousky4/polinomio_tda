@@ -1,6 +1,6 @@
 #voy a hacer un menú para elegir el ejercicio que se quiera ejecutar
 from ejer1.ejer1 import resolver_puzzle
-from ejer2.ejer2 import ejecutar_determinantes
+from ejer2.ejer2 import ejecutar_determinantes, matriz
 
 def main():
     while True:
@@ -22,7 +22,7 @@ def main():
             resolver_puzzle()
         elif opcion == '2':
             print("Ejecutando ejercicio 2...")
-            ejecutar_determinantes()
+            ejecutar_determinantes(matriz)
         elif opcion == '3':
             pass
         elif opcion == '4':
